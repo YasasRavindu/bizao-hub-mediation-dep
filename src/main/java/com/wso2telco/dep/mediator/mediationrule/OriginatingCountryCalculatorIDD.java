@@ -75,12 +75,21 @@ public class OriginatingCountryCalculatorIDD extends OriginatingCountryCalculato
 
     private MSISDNUtil phoneUtil;
 
+    private boolean ignoreMSISDNFormatValidation;
+
     private static Set<String> countryLookUpOnHeader = new HashSet<String>();
 
     public static String oparatorOnHeaderName = null;
     public static String oparatorOnHeaderRegEx = null;
     public static String oparatorOnHeaderMCC = null;
 
+
+    public OriginatingCountryCalculatorIDD() {
+
+    }
+    public OriginatingCountryCalculatorIDD(boolean ignoreMSISDNFormatValidation) {
+        this.ignoreMSISDNFormatValidation = ignoreMSISDNFormatValidation;
+    }
 
     /*
 	 * (non-Javadoc)
@@ -249,35 +258,43 @@ public class OriginatingCountryCalculatorIDD extends OriginatingCountryCalculato
         //MSISDN could be in ARC/PCR format
         //if (phoneUtil.resourceInMsisdnFormat(searchDTO.getMSISDN())) {
 
-        MSISDN numberProto = null;
-        int countryCode = 0;
-        //Check MSIDN in typical format
-        try {
-            numberProto = phoneUtil.parse(searchDTO.getMSISDN());
-            if (numberProto != null) {
+        if (!ignoreMSISDNFormatValidation) {
+            MSISDN numberProto = null;
+            int countryCode = 0;
+            //Check MSIDN in typical format
+            try {
+                numberProto = phoneUtil.parse(searchDTO.getMSISDN());
+                if (numberProto != null) {
+                    /**
+                     * obtain the country code form the phone number object
+                     */
+                    countryCode = numberProto.getCountryCode();
+                }
+
                 /**
-                 * obtain the country code form the phone number object
+                 * if the country code within the header look up context , the
+                 * operator taken from the header object
                  */
-                countryCode = numberProto.getCountryCode();
-            }
+                if (countryLookUpOnHeader.contains(String.valueOf(countryCode))) {
+                    operator = operatorCode;
+                }
+                /**
+                 * build the MSISDN
+                 */
 
-            /**
-             * if the country code within the header look up context , the
-             * operator taken from the header object
-             */
-            if (countryLookUpOnHeader.contains(String.valueOf(countryCode))) {
-                operator = operatorCode;
-            }
-            /**
-             * build the MSISDN
-             */
+                if (numberProto != null) {
 
-            if (numberProto != null) {
-
-                msisdn.append("+").append(numberProto.getCountryCode())
-                        .append(numberProto.getNationalNumber());
+                    msisdn.append("+").append(numberProto.getCountryCode())
+                            .append(numberProto.getNationalNumber());
+                }
+            } catch (InvalidMSISDNException e) {
+                //number in either ARC/PCR format. number already validated from oneapi validation
+                //operator fetched from header
+                if (operatorCode != null) {
+                    operator = operatorCode;
+                }
             }
-        } catch (InvalidMSISDNException e) {
+        } else {
             //number in either ARC/PCR format. number already validated from oneapi validation
             //operator fetched from header
             if (operatorCode != null) {

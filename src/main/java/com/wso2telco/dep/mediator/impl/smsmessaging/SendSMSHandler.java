@@ -110,7 +110,7 @@ public class SendSMSHandler extends AbstractHandler{
 	public SendSMSHandler(SMSExecutor executor) throws InstantiationException, IllegalAccessException, ClassNotFoundException, ValidatorException{
 		super();
 		this.executor = executor;
-		occi = new OriginatingCountryCalculatorIDD();
+		occi = new OriginatingCountryCalculatorIDD(true);
 		responseHandler = new ResponseHandler();
 		smsMessagingService = new SMSMessagingService();
 	}
