@@ -290,6 +290,8 @@ public class SendSMSHandler extends AbstractHandler{
 	 */
 	@Override
 	public boolean validate(String httpMethod, String requestPath, JSONObject jsonBody, MessageContext context) throws Exception {
+		// Setting this property in order to handle  errors ESB commonFault seq.
+		HandlerUtils.setHandlerProperty(context, this.getClass().getSimpleName());
 		if (!httpMethod.equalsIgnoreCase("POST")) {
 			((Axis2MessageContext) context).getAxis2MessageContext().setProperty("HTTP_SC", 405);
 			throw new Exception("Method not allowed");
